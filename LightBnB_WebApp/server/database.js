@@ -77,7 +77,15 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  return pool
+  .query(`
+    SELECT *
+    FROM reservations
+    WHERE guest_id = $1 AND end_date < now()::date
+    LIMIT $2
+  `, [guest_id, limit])
+  .then(result => result.rows[0])
+  .catch(error => error.message);
 }
 exports.getAllReservations = getAllReservations;
 
@@ -90,22 +98,17 @@ exports.getAllReservations = getAllReservations;
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
-  // return pool.query(`
-  //   SELECT *
-  //   FROM properties
-  //   LIMIT $1
-  // `, [limit])
-  // .then(result => {
-  //   console.log(result.rows);
-  // })
-  // .catch(err => {
-  //   console.log(err.message);
-  // });
-  const limitedProperties = {};
-  for (let i = 1; i <= limit; i++) {
-    limitedProperties[i] = properties[i];
-  }
-  return Promise.resolve(limitedProperties);
+  return pool.query(`
+    SELECT *
+    FROM properties
+    LIMIT $1
+  `, [limit])
+  .then(result => {
+    console.log(result.rows);
+  })
+  .catch(err => {
+    console.log(err.message);
+  });
 }
 exports.getAllProperties = getAllProperties;
 
